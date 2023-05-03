@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>View-limited Page</title>
+    <script>
+      // Set the maximum number of views before erasing the page
+      const MAX_VIEWS = 10;
+
+      // Get the current number of views from local storage
+      let numViews = parseInt(localStorage.getItem('numViews')) || 0;
+
+      // Increment the number of views and store it in local storage
+      localStorage.setItem('numViews', ++numViews);
+
+      // Check if the maximum number of views has been reached
+      if (numViews >= MAX_VIEWS) {
+        // Erase the contents of the page
+        document.body.innerHTML = '';
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Welcome to the view-limited page!</h1>
+    <p>You have <span id="numViews"></span> views remaining.</p>
+    <script>
+      // Update the remaining views count
+      document.getElementById('numViews').textContent = MAX_VIEWS - numViews;
+    </script>
+  </body>
+</html>
