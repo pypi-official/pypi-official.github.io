@@ -1,12 +1,3 @@
-
-
-
-
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
   <head>
@@ -854,441 +845,39 @@
     
     
   
-    
-    
-  
-    
-    
-  
-    
-    
-  
-    
-    
-  
-    
-    
-  
-    
-    
   
 </div>
-<div id="hack" hidden><pre>
+<div hidden id="graph"><pre>
+    from networkx.algorithms import community
+    import networkx as  nx
+    import matplotlib.pyplot as plt
+    import random
+    from itertools import combinations
+    def draw(G, density =False):
+        if len(G.nodes)==0:
+            return
+        plt.figure(random.randint(1,100))
+        nx.draw_networkx(G)
+        plt.show()
+    G= nx.barbell_graph(6,1)
+    draw(G)
+    communitoes_generator=community.girvan_newman(G)
+    top_level_communitoes = next(communitoes_generator)
+    next_level_communitoes = next(communitoes_generator)
+    subs=sorted(map(sorted,next_level_communitoes))
+    for i in subs:
+        if len(i) == 1:
+            SG =nx.Graph()
+            SG.add_node(i[0])
+            draw(SG)
+        sub_graph = nx.Graph()
+        k=list(combinations(i,2))
+        for j in k:
+           sub_graph.add_edge(j[0],j[1])
+        draw(sub_graph)
+  </pre></div>
 
-    
-    2) i)PROGRAM:
-    hadoop dfs –mkdir  /directory_name
-    hadoop dfs -ls /
-    hadoop dfs –put /localfile /hdfsdirectory
-    hadoop dfs -get /HDFSFile /localpath
-    hadoop dfs -cat /folder/filename
-    hadoop dfs –rm /path
-    hadoop dfs -rmdir -r /Foldername
-    
-    2)ii) benchmark
-    hadoop jar had.jar mrbench -numRuns 50
-    sress test
-    hadoop jar had.jar nnbench -operation create_write -maps 12 -reduces 6 -blockSize 1 -bytestoWrite 0 -numberofFiles 100
-    
-    3) A) PROGRAM:
-    import java.io.IOException;
-    import java.util.StringTokenizer;
-    import org.apache.hadoop.conf.Configuration;
-    import org.apache.hadoop.fs.Path;
-    import org.apache.hadoop.io.IntWritable;
-    import org.apache.hadoop.io.Text;
-    import org.apache.hadoop.mapreduce.Job;
-    import org.apache.hadoop.mapreduce.Mapper;
-    import org.apache.hadoop.mapreduce.Reducer;
-    import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-    import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-    public class WordCount {
-      public static class TokenizerMapper
-           extends Mapper<Object, Text, Text, IntWritable>{
-    
-        private final static IntWritable one = new IntWritable(1);
-        private Text word = new Text();
-    
-        public void map(Object key, Text value, Context context
-                        ) throws IOException, InterruptedException {
-          StringTokenizer itr = new StringTokenizer(value.toString());
-          while (itr.hasMoreTokens()) {
-            word.set(itr.nextToken());
-            context.write(word, one);      }    }  }
-      public static class IntSumReducer
-           extends Reducer<Text,IntWritable,Text,IntWritable> {
-        private IntWritable result = new IntWritable();
-        public void reduce(Text key, Iterable<IntWritable> values,
-                           Context context
-                           ) throws IOException, InterruptedException {
-          int sum = 0;
-          for (IntWritable val : values) {
-            sum += val.get();
-          }
-          result.set(sum);
-          context.write(key, result);
-        }
-      }
-      public static void main(String[] args) throws Exception {
-        Configuration conf = new Configuration();
-        Job job = Job.getInstance(conf, "word count");
-        job.setJarByClass(WordCount.class);
-      job.setMapperClass(TokenizerMapper.class);
-       job.setCombinerClass(IntSumReducer.class);
-        job.setReducerClass(IntSumReducer.class);
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(IntWritable.class);
-        FileInputFormat.addInputPath(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
-        System.exit(job.waitForCompletion(true) ? 0 : 1);
-      }
-    }
-    hdfs dfs -mkdir programs
-    hdfs dfs -put input.txt programs/
-    hadoop jar wordcount.Jar wordcount programs/input.txt programs/output
-    hdfs dfs -cat programs -word/output/*
-    
-    
-    3)B) Wordsearch
-    
-    import java.io.IOException;
-    import java.util.StringTokenizer;
-    import org.apache.hadoop.conf.Configuration;
-    import org.apache.hadoop.fs.Path;
-    import org.apache.hadoop.io.IntWritable;
-    import org.apache.hadoop.io.Text;
-    import org.apache.hadoop.mapreduce.Job;
-    import org.apache.hadoop.mapreduce.Mapper;
-    import org.apache.hadoop.mapreduce.Reducer;
-    import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-    import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-    public class WordSearch {
-        public static class TokenizerMapper
-                extends Mapper<Object, Text, Text, IntWritable>{
-            private final static IntWritable one = new IntWritable(1);
-            private Text word = new Text();
-    
-            public void map(Object key, Text value, Context context
-            ) throws IOException, InterruptedException {
-                Configuration conf = context.getConfiguration();
-                String search = conf.get("search");
-    
-                StringTokenizer itr = new StringTokenizer(value.toString());
-                while (itr.hasMoreTokens()) {
-                    String token = itr.nextToken();
-                    if(token.startsWith(search)) {
-                        word.set(token);
-                        context.write(word, one);
-                    }       }     }    }
-        public static class IntSumReducer
-                extends Reducer<Text,IntWritable,Text,IntWritable> {
-            private IntWritable result = new IntWritable();
-    
-            public void reduce(Text key, Iterable<IntWritable> values,
-                               Context context
-            ) throws IOException, InterruptedException {
-                int sum = 0;
-                for (IntWritable val : values) {
-                    sum += val.get()  }
-                result.set(sum);
-                context.write(key, result); }}
-        public static void main(String[] args) throws Exception {
-            Configuration conf = new Configuration();
-            conf.set("search", args[2]);
-    
-            Job job = Job.getInstance(conf, "wordsearch");
-            job.setJarByClass(WordSearch.class);    job.setMapperClass(TokenizerMapper.class);
-          job.setReducerClass(IntSumReducer.class);
-            job.setOutputKeyClass(Text.class);      job.setOutputValueClass(IntWritable.class);
-          FileInputFormat.addInputPath(job, new Path(args[0]));
-            FileOutputFormat.setOutputPath(job, new Path(args[1]));
-            System.exit(job.waitForCompletion(true) ? 0 : 1); }}
-    hadoop jar wordsearch.jar grep programs/input.txt programs/output programs
-    hdfs dfs -cat programs/output/*
-    
-    
- 4) PROGRAM: 
-    import java.io.IOException;
-    import java.util.HashSet;
-    import java.util.Set;
-    import java.util.StringTokenizer;
-    import org.apache.hadoop.conf.Configuration;
-    import org.apache.hadoop.fs.Path;
-    import org.apache.hadoop.io.IntWritable;
-    import org.apache.hadoop.io.Text;
-    import org.apache.hadoop.mapreduce.Counters;
-    import org.apache.hadoop.mapreduce.Job;
-    import org.apache.hadoop.mapreduce.Mapper;
-    import org.apache.hadoop.mapreduce.Reducer;
-    import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-    import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-    public class StopWords {
-     private static final String[] stopWords = { "a", "about", "above", "above",
-       "across", "after", "afterwards", "again", "against", "all",
-       "almost", "alone", "along", "already", "also", "although",
-       "always", "am", "among", "amongst", "amoungst", "amount", "an",
-       "and", "another", "any", "anyhow", "anyone", "anything", "anyway",
-       "anywhere", "are", "around", "as", "at", "back", "be", "became",
-       "because", "become", "becomes", "becoming", "been", "before",
-       "beforehand", "behind", "being", "below", "beside", "besides",
-       "between", "beyond", "bill", "both", "bottom", "but", "by", "call",
-       "can", "cannot", "cant", "co", "con", "could", "couldnt", "cry",
-       "de", "describe", "detail", "do", "done", "down", "due", "during",
-       "each", "eg", "eight", "either", "eleven", "else", "elsewhere",
-       "empty", "enough", "etc", "even", "ever", "every", "everyone",
-       "everything", "everywhere", "except", "few", "fifteen", "fify",
-       "fill", "find", "fire", "first", "five", "for", "former",
-       "formerly", "forty", "found", "four", "from", "front", "full",
-       "further", "get", "give", "go", "had", "has", "hasnt", "have",
-       "he", "hence", "her", "here", "hereafter", "hereby", "herein",
-       "hereupon", "hers", "herself", "him", "himself", "his", "how",
-       "however", "hundred", "ie", "if", "in", "inc", "indeed",
-       "interest", "into", "is", "it", "its", "itself", "keep", "last",
-       "latter", "latterly", "least", "less", "ltd", "made", "many",
-       "may", "me", "meanwhile", "might", "mill", "mine", "more",
-       "moreover", "most", "mostly", "move", "much", "must", "my",
-       "myself", "name", "namely", "neither", "never", "nevertheless",
-       "next", "nine", "no", "nobody", "none", "noone", "nor", "not",
-       "nothing", "now", "nowhere", "of", "off", "often", "on", "once",
-       "one", "only", "onto", "or", "other", "others", "otherwise", "our",
-       "ours", "ourselves", "out", "over", "own", "part", "per",
-       "perhaps", "please", "put", "rather", "re", "same", "see", "seem",
-       "seemed", "seeming", "seems", "serious", "several", "she",
-       "should", "show", "side", "since", "sincere", "six", "sixty", "so",
-       "some", "somehow", "someone", "something", "sometime", "sometimes",
-       "somewhere", "still", "such", "system", "take", "ten", "than",
-       "that", "the", "their", "them", "themselves", "then", "thence",
-       "there", "thereafter", "thereby", "therefore", "therein",
-       "thereupon", "these", "they", "thickv", "thin", "third", "this",
-       "those", "though", "three", "through", "throughout", "thru",
-       "thus", "to", "together", "too", "top", "toward", "towards",
-       "twelve", "twenty", "two", "un", "under", "until", "up", "upon",
-       "us", "very", "via", "was", "we", "well", "were", "what",
-       "whatever", "when", "whence", "whenever", "where", "whereafter",
-       "whereas", "whereby", "wherein", "whereupon", "wherever",
-       "whether", "which", "while", "whither", "who", "whoever", "whole",
-       "whom", "whose", "why", "will", "with", "within", "without",
-       "would", "yet", "you", "your", "yours", "yourself", "yourselves" };
-     static Set<String> stopWordsSet = new HashSet<>();
-    static {
-      for (String s : stopWords) {
-       stopWordsSet.add(s);  } }
-     public static enum COUNTERS {
-      STOPWORDS;}
-     public static class StopWordsMapper extends
-       Mapper<Object, Text, Text, IntWritable> {
-      public boolean isStopWord(String s) {
-       return stopWordsSet.contains(s);}
-      public void map(Object key, Text value, Context context)
-        throws IOException, InterruptedException {
-       String str = value.toString();
-       StringTokenizer tokens = new StringTokenizer(str);  while (tokens.hasMoreElements()) {
-        String word = tokens.nextToken();
-      if (isStopWord(word)) {
-    Context.getCounter(COUNTERS.STOPWORDS).increment(1); }}}}
-     public static void main(String[] args) throws Exception {
-      Configuration conf = new Configuration();
-      Job job = Job.getInstance(conf, "Character count");
-      job.setJarByClass(StopWords.class);
-    job.setMapperClass(StopWordsMapper.class);
-      job.setOutputKeyClass(Text.class);
-      job.setOutputValueClass(IntWritable.class);
-      FileInputFormat.addInputPath(job, new Path(args[0]));
-      FileOutputFormat.setOutputPath(job, new Path(args[1]));
-      job.waitForCompletion(true);
-      org.apache.hadoop.mapreduce.Counters counters = job.getCounters();
-      System.out.printf("Number of stop words are %d ",;counters.findCounter(COUNTERS.STOPWORDS).getValue());}}
-    
-    4)Stop words:
-    
-    import sys
-    import re
-    stop_words = set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on', 'that', 'the', 'to', 'was', 'were', 'will', 'with'])
-    word_regex = re.compile(r"\b\w+\b")
-    for line in sys.stdin:
-        words = word_regex.findall(line)
-        words = [word.lower() for word in words if word.lower() not in stop_words]
-        for word in words:
-            print("%s\t%s" % (word, 1))
-            
-    Command:
-    hadoop jar hadoop -streaming -3.3.0.jar -file stop.py -input programs-word/input.txt -output programs-word/output mapper
-    "python stop.py" 
-    hdfs dfs -cat programs-word/output/*
-    
-    
-    
-    5) PAGERANK
-    
-    import networkx as nx
-    G=nx.barabasi_albert_graph(60,41)
-    pr=nx.pagerank(G,0.4)
-    print(pr)
-    
-    
-6)Ontology
-import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.cluster import KMeans
-ontA_data = pd.read_csv('ontA_instances.csv')
-ontB_data = pd.read_csv('ontB_instances.csv')
-for data in [ontA_data, ontB_data]:
-data['title'] = data['title'].apply(lambda x: x.lower())
-sim_scores = [
-{
-'ontA_instance': row1['title'],
-'ontB_instance': row2['title'],
-'title_sim': cosine_similarity(TfidfVectorizer().fit_transform([row1['title'], row2['title']]))[0][1],
-'genre_sim': len(set(row1['genre'].split(',')).intersection(set(row2['genre'].split(',')))) /
-len(set(row1['genre'].split(',')).union(set(row2['genre'].split(',')))),
-'director_sim': 1 / (1 + abs(int(row1['director_birth_year']) - int(row2['director_birth_year']))),
-}
-for idx1, row1 in ontA_data.iterrows()
-for idx2, row2 in ontB_data.iterrows()
-]
-sim_matrix = pd.DataFrame(sim_scores).pivot(index='ontA_instance', columns='ontB_instance',
-values='title_sim').fillna(0) + pd.DataFrame(sim_scores).pivot(index='ontA_instance',
-columns='ontB_instance', values='genre_sim').fillna(0) +
-pd.DataFrame(sim_scores).pivot(index='ontA_instance', columns='ontB_instance',
-values='director_sim').fillna(0)
-match_results = pd.DataFrame({'ontA_instance': sim_matrix.index, 'cluster':
-KMeans(n_clusters=5, random_state=0).fit_predict(sim_matrix)})
-match_results['ontB_instance'] = [
-', '.join(list(sim_matrix.columns[np.where(match_results['cluster'] == cluster)[0]]))
-for cluster in range(5)
-]
-print(match_results)
-
-Dataset:
-ontA_instance.csv
-title,genre,director_birth_year
-The Godfather,Crime,Drama,1920
-The Shawshank Redemption,Drama,1947
-The Dark Knight,Action,Crime,Drama,1970
-Pulp Fiction,Crime,Drama,1963
-The Lord of the Rings: The Return of the King,Adventure,Drama,Fantasy,1958
-
-ontB_instance.csv
-title,genre,director_birth_year
-The Godfather: Part II,Crime,Drama,1920
-The Shawshank Redemption,Drama,1947
-The Godfather,Crime,Drama,1972
-The Lord of the Rings: The Fellowship of the Ring,Adventure,Drama,Fantasy,1958
-Forrest Gump,Drama,Romance,Comedy,1951
-
-7. Advertising
-import pandas as pd
-import numpy as np
-from sklearn.cluster import KMeans
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-customer_data = pd.read_csv('customer_data.csv')
-target_age_group = KMeans(n_clusters=3, random_state=0).fit_predict(customer_data[['age']])
-target_gender = KMeans(n_clusters=2, random_state=0).fit_predict(customer_data[['gender']])
-target_income_group = KMeans(n_clusters=4,
-random_state=0).fit_predict(customer_data[['income']])
-product_data = pd.read_csv('product_data.csv')
-vectorizer = TfidfVectorizer()
-product_vector = vectorizer.fit_transform(product_data['description'])
-customer_vector = vectorizer.transform(customer_data['interests'])
-similarity_matrix = cosine_similarity(customer_vector, product_vector)
-product_data['similarity_score'] = np.max(similarity_matrix, axis=0)
-product_data = product_data.sort_values(by=['similarity_score'], ascending=False).head(5)
-website_data = pd.read_csv('website_data.csv')
-visitor_clusters = KMeans(n_clusters=5, random_state=0).fit_predict(website_data[['time_spent',
-'pages_visited']])
-best_cluster = np.argmax([np.mean(website_data[visitor_clusters == i]['purchase']) for i in
-range(5)])
-best_pages_str = ', '.join(website_data[visitor_clusters == best_cluster]['pages_visited'].tolist())
-social_media_data = pd.read_csv('social_media_data.csv')
-email_data = pd.read_csv('email_data.csv')
-social_media_clusters = KMeans(n_clusters=3,
-random_state=0).fit_predict(social_media_data[['likes', 'shares']])
-email_clusters = KMeans(n_clusters=2, random_state=0).fit_predict(email_data[['open_rate',
-'click_rate']])
-print('Marketing Recommendations:')
-print('Target Age Group:', target_age_group)
-print('Target Gender:', target_gender)
-print('Target Income Group:', target_income_group)
-print('Product Recommendations:')
-print(product_data[['name', 'description']])
-
-    
-    
-    8)A) MISSING VALUE RATIO:
-    
-    import pandas as pd
-    import numpy as np
-    train=pd.read_csv(r'Big_mart.csv')
-    print('\n\nFeatures Before Missing Ratio : ')
-    print('-----------------------------------')
-    print(train.isnull().sum()/len(train)*100)
-    print('\nSize of dataset before removing missing values:', train.shape)
-    n = train.isnull().sum() 
-    a=n/len(train)*100
-    variables = train.columns
-    variable = [ ]
-    print('\n\nFeatures whose threshold >10, that has to removed are:')
-    print('---------------------------------------------------')
-    for i in range(0,len(train.columns)):
-        if a[i]>=10:  
-            variable.append(variables[i])
-            print(variables[i])
-            train = train.drop(variables[i], axis=1)
-    print('\nfinal features after Missing Ratio are')
-    print('------------------------------------------')
-    print(train.isnull().sum()/len(train)*100)
-    print('\nSize of dataset after removing missing values:', train.shape)
-    
-    
-    8)B) LOW VARIANCE FILTER
-    
-    import pandas as pd
-    import numpy as np
-    train=pd.read_csv(r'Big_Mart.csv')
-    print(train.dtypes)
-    print('\n\nAfter removing other data types\n-----------------------------')
-    train = train.select_dtypes(exclude = 'object')
-    print(train.dtypes)
-    print('\nVariance of Columns \n-------------------')
-    print(train.var())
-    var =[]
-    var = train.var()
-    numeric = train.columns
-    variable = [ ]
-    print('After removing low variance filter with threshold 15% is\n-------------------------------------------------------')
-    for i in range(0,len(var)):
-        if var[i]>1.5:   
-           variable.append(numeric[i])
-           print(numeric[i])
-    
-    
-    
-    8)C) HIGH CORRELATION FILTER
-    
-    import pandas as pd
-    import numpy as np
-    from sklearn import datasets
-    iris = datasets.load_iris()
-    X = iris.data
-    y = iris.target
-    df = pd.DataFrame(X)
-    print(df.head())
-    cor_matrix = df.corr().abs()
-    print(cor_matrix)
-    upper_tri =cor_matrix.where(np.triu(np.ones(cor_matrix.shape),k=1).astype(bool))
-    print(upper_tri)
-    to_drop = [column for column in upper_tri.columns if any(upper_tri[column] > 0.95)]
-    print()
-    print('The column to drop is' , to_drop)
-    df1 = df.drop(df.columns[to_drop], axis=1)
-    print()
-    print(df1.head())
-    
-    
-    9) PCA:
-    
+  <div hidden id="pca"><pre>
     import pandas as pd
     url = "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"
     df = pd.read_csv(url, names=['sepal length','sepal width','petal length','petal width','target'])
@@ -1321,45 +910,377 @@ print(product_data[['name', 'description']])
             x_pca = x_pca.drop(variables[i], axis=1)
     print('After PCA :')
     x_pca.columns=['PC1', 'PC2']
-    print(x_pca.head())
-    
-    10) Subgraphs
-    
-    from networkx.algorithms import community
-    import networkx as  nx
-    import matplotlib.pyplot as plt
-    import random
-    from itertools import combinations
-    
-    def draw(G, density =False):
-        if len(G.nodes)==0:
-            return
-        plt.figure(random.randint(1,100))
-        nx.draw_networkx(G)
-        plt.show()
-    
-    
-    G= nx.barbell_graph(6,1)
-    draw(G)
-    communitoes_generator=community.girvan_newman(G)
-    top_level_communitoes = next(communitoes_generator)
-    next_level_communitoes = next(communitoes_generator)
-    subs=sorted(map(sorted,next_level_communitoes))
-    
-    for i in subs:
-        if len(i) == 1:
-            SG =nx.Graph()
-            SG.add_node(i[0])
-            draw(SG)
-        sub_graph = nx.Graph()
-        k=list(combinations(i,2))
-        for j in k:
-           sub_graph.add_edge(j[0],j[1])
-        draw(sub_graph)
-    
+    print(x_pca.head())  
+  </pre></div>
 
-    </pre></div>
-    
+  <div hidden id="8a">
+    <pre>
+        import pandas as pd
+        import numpy as np
+        train=pd.read_csv(r'Big_mart.csv')
+        print('\n\nFeatures Before Missing Ratio : ')
+        print('-----------------------------------')
+        print(train.isnull().sum()/len(train)*100)
+        print('\nSize of dataset before removing missing values:', train.shape)
+        n = train.isnull().sum() 
+        a=n/len(train)*100
+        variables = train.columns
+        variable = [ ]
+        print('\n\nFeatures whose threshold >10, that has to removed are:')
+        print('---------------------------------------------------')
+        for i in range(0,len(train.columns)):
+            if a[i]>=10:  
+                variable.append(variables[i])
+                print(variables[i])
+                train = train.drop(variables[i], axis=1)
+        print('\nfinal features after Missing Ratio are')
+        print('------------------------------------------')
+        print(train.isnull().sum()/len(train)*100)
+        print('\nSize of dataset after removing missing values:', train.shape)
+    </pre>
+  </div>
+  <div hidden id="8b">
+    <pre>
+        import pandas as pd
+        import numpy as np
+        train=pd.read_csv(r'Big_Mart.csv')
+        print(train.dtypes)
+        print('\n\nAfter removing other data types\n-----------------------------')
+        train = train.select_dtypes(exclude = 'object')
+        print(train.dtypes)
+        print('\nVariance of Columns \n-------------------')
+        print(train.var())
+        var =[]
+        var = train.var()
+        numeric = train.columns
+        variable = [ ]
+        print('After removing low variance filter with threshold 15% is\n-------------------------------------------------------')
+        for i in range(0,len(var)):
+            if var[i]>1.5:   
+               variable.append(numeric[i])
+               print(numeric[i])      
+    </pre>
+  </div>
+  <div hidden id="8c">
+    <pre>
+  import pandas as pd
+  import numpy as np
+  from sklearn import datasets
+  iris = datasets.load_iris()
+  X = iris.data
+  y = iris.target
+  df = pd.DataFrame(X)
+  print(df.head())
+  cor_matrix = df.corr().abs()
+  print(cor_matrix)
+  upper_tri =cor_matrix.where(np.triu(np.ones(cor_matrix.shape),k=1).astype(bool))
+  print(upper_tri)
+  to_drop = [column for column in upper_tri.columns if any(upper_tri[column] > 0.95)]
+  print()
+  print('The column to drop is' , to_drop)
+  df1 = df.drop(df.columns[to_drop], axis=1)
+  print()
+  print(df1.head())
+</pre>
+</div>
+<div hidden id="ad"><pre>
+    import pandas as pd
+    import numpy as np
+    from sklearn.cluster import KMeans
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity
+    customer_data = pd.read_csv('customer_data.csv')
+    target_age_group = KMeans(n_clusters=3, random_state=0).fit_predict(customer_data[['age']])
+    target_gender = KMeans(n_clusters=2, random_state=0).fit_predict(customer_data[['gender']])
+    target_income_group = KMeans(n_clusters=4,
+    random_state=0).fit_predict(customer_data[['income']])
+    product_data = pd.read_csv('product_data.csv')
+    vectorizer = TfidfVectorizer()
+    product_vector = vectorizer.fit_transform(product_data['description'])
+    customer_vector = vectorizer.transform(customer_data['interests'])
+    similarity_matrix = cosine_similarity(customer_vector, product_vector)
+    product_data['similarity_score'] = np.max(similarity_matrix, axis=0)
+    product_data = product_data.sort_values(by=['similarity_score'], ascending=False).head(5)
+    website_data = pd.read_csv('website_data.csv')
+    visitor_clusters = KMeans(n_clusters=5, random_state=0).fit_predict(website_data[['time_spent',
+    'pages_visited']])
+    best_cluster = np.argmax([np.mean(website_data[visitor_clusters == i]['purchase']) for i in
+    range(5)])
+    best_pages_str = ', '.join(website_data[visitor_clusters == best_cluster]['pages_visited'].tolist())
+    social_media_data = pd.read_csv('social_media_data.csv')
+    email_data = pd.read_csv('email_data.csv')
+    social_media_clusters = KMeans(n_clusters=3,
+    random_state=0).fit_predict(social_media_data[['likes', 'shares']])
+    email_clusters = KMeans(n_clusters=2, random_state=0).fit_predict(email_data[['open_rate',
+    'click_rate']])
+    print('Marketing Recommendations:')
+    print('Target Age Group:', target_age_group)
+    print('Target Gender:', target_gender)
+    print('Target Income Group:', target_income_group)
+    print('Product Recommendations:')
+    print(product_data[['name', 'description']])
+    print('Website Recommendations:')
+    print('Best Pages:', best_pages_str)
+    print('Social Media Recommendations:')
+    print('Target Channels:', social_media_clusters)
+    print('Email Marketing Recommendations:')
+    print('Target Channels:', email_clusters)
+
+    customer_data.csv
+    customer_id,age,gender,income,interests
+    1,25,M,50000,Technology,Sports
+    2,40,F,75000,Travel,Reading
+    3,18,F,20000,Music,Sports,Technology
+    4,35,M,80000,Reading,Technology
+    5,28,F,60000,Travel,Sports
+    6,30,M,90000,Technology,Reading
+    7,22,F,35000,Sports,Music
+    8,42,M,100000,Travel,Reading,Technology
+    9,29,F,55000,Music,Travel
+    10,45,M,120000,Reading,Technology,Sports
+
+    product_data.csv
+    product_id,name,description,price
+    1,Laptop,"A high-performance laptop with a fast processor and long battery life",1200
+    2,Smartphone,"An advanced smartphone with a large high-resolution display and 5G
+    connectivity",1000
+    3,Headphones,"High-quality noise-cancelling headphones for the ultimate listening
+    experience",200
+    4,Smartwatch,"A stylish and functional smartwatch with fitness tracking and GPS",300
+    5,Tablet,"A lightweight and portable tablet with a high-resolution display and long battery
+    life",800
+
+    website_data.csv
+    time_spent,pages_visited,purchase
+    25,3,0
+    20,2,0
+    30,4,1
+    35,5,1
+    40,6,1
+    50,7,1
+
+    email_data.csv
+    open_rate,click_rate
+    10,2
+    20,3
+    30,5
+    40,6
+    50,8
+
+    social_media_data.csv
+    likes,shares
+    100,50
+    50,20
+    200,100
+    300,150
+    400,200
+
+</pre></div>
+<div hidden id="onto"><pre>
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.cluster import KMeans
+ontA_data = pd.read_csv('ontA_instances.csv')
+ontB_data = pd.read_csv('ontB_instances.csv')
+for data in [ontA_data, ontB_data]:
+    data['title'] = data['title'].apply(lambda x: x.lower())
+sim_scores = [
+    {
+        'ontA_instance': row1['title'], 
+        'ontB_instance': row2['title'],
+        'title_sim': cosine_similarity(TfidfVectorizer().fit_transform([row1['title'], row2['title']]))[0][1],
+        'genre_sim': len(set(row1['genre'].split(',')).intersection(set(row2['genre'].split(',')))) / len(set(row1['genre'].split(',')).union(set(row2['genre'].split(',')))),
+        'director_sim': 1 / (1 + abs(int(row1['director_birth_year']) - int(row2['director_birth_year']))),
+    }
+    for idx1, row1 in ontA_data.iterrows() 
+    for idx2, row2 in ontB_data.iterrows()
+]
+sim_matrix = pd.DataFrame(sim_scores).pivot(index='ontA_instance', columns='ontB_instance', values='title_sim').fillna(0) + pd.DataFrame(sim_scores).pivot(index='ontA_instance', columns='ontB_instance', values='genre_sim').fillna(0) + pd.DataFrame(sim_scores).pivot(index='ontA_instance', columns='ontB_instance', values='director_sim').fillna(0)
+match_results = pd.DataFrame({'ontA_instance': sim_matrix.index, 'cluster': KMeans(n_clusters=5, random_state=0).fit_predict(sim_matrix)})
+match_results['ontB_instance'] = [
+    ', '.join(list(sim_matrix.columns[np.where(match_results['cluster'] == cluster)[0]])) 
+    for cluster in range(5)
+]
+print(match_results)
+
+Dataset:
+ontA_instance.csv
+title,genre,director_birth_year
+The Godfather,Crime,Drama,1920
+The Shawshank Redemption,Drama,1947
+The Dark Knight,Action,Crime,Drama,1970
+Pulp Fiction,Crime,Drama,1963
+The Lord of the Rings: The Return of the King,Adventure,Drama,Fantasy,1958
+ontB_instance.csv
+title,genre,director_birth_year
+The Godfather: Part II,Crime,Drama,1920
+The Shawshank Redemption,Drama,1947
+The Godfather,Crime,Drama,1972
+The Lord of the Rings: The Fellowship of the Ring,Adventure,Drama,Fantasy,1958
+Forrest Gump,Drama,Romance,Comedy,1951
+</pre></div>
+<div hidden id="stop">
+<pre>
+import sys
+import re
+stop_words = set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on', 'that', 'the', 'to', 'was', 'were', 'will', 'with'])
+word_regex = re.compile(r"\b\w+\b")
+for line in sys.stdin:
+    words = word_regex.findall(line)
+    words = [word.lower() for word in words if word.lower() not in stop_words]
+    for word in words:
+        print("%s\t%s" % (word, 1))
+Command:
+hadoop jar hadoop -streaming -3.3.0.jar -file stop.py -input programs-word/input.txt -output programs-word/output mapper
+"python stop.py" 
+hdfs dfs -cat programs-word/output/*
+</pre>
+</div>
+<div hidden id="pager">
+    <pre>
+import networkx as nx
+G=nx.barabasi_albert_graph(60,41)
+pr=nx.pagerank(G,0.4)
+print(pr)
+    </pre>
+</div>
+<div hidden id="wos">
+    <pre>
+import java.io.IOException;
+import java.util.StringTokenizer;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+public class WordSearch {
+    public static class TokenizerMapper
+            extends Mapper<  Object, Text, Text, IntWritable>{
+        private final static IntWritable one = new IntWritable(1);
+        private Text word = new Text();
+
+        public void map(Object key, Text value, Context context
+        ) throws IOException, InterruptedException {
+            Configuration conf = context.getConfiguration();
+            String search = conf.get("search");
+
+            StringTokenizer itr = new StringTokenizer(value.toString());
+            while (itr.hasMoreTokens()) {
+                String token = itr.nextToken();
+                if(token.startsWith(search)) {
+                    word.set(token);
+                    context.write(word, one);
+                }       }     }    }
+    public static class IntSumReducer
+            extends Reducer< Text,IntWritable,Text,IntWritable> {
+        private IntWritable result = new IntWritable();
+
+        public void reduce(Text key, Iterable< IntWritable> values,
+                           Context context
+        ) throws IOException, InterruptedException {
+            int sum = 0;
+            for (IntWritable val : values) {
+                sum += val.get()  }
+            result.set(sum);
+            context.write(key, result); }}
+    public static void main(String[] args) throws Exception {
+        Configuration conf = new Configuration();
+        conf.set("search", args[2]);
+
+        Job job = Job.getInstance(conf, "wordsearch");
+        job.setJarByClass(WordSearch.class);    job.setMapperClass(TokenizerMapper.class);
+      job.setReducerClass(IntSumReducer.class);
+        job.setOutputKeyClass(Text.class);      job.setOutputValueClass(IntWritable.class);
+      FileInputFormat.addInputPath(job, new Path(args[0]));
+        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        System.exit(job.waitForCompletion(true) ? 0 : 1); }}
+hadoop jar wordsearch.jar grep programs/input.txt programs/output programs
+hdfs dfs -cat programs/output/*
+
+    </pre>
+</div>
+<div hidden id="woc">
+    <pre>
+        import java.io.IOException;
+        import java.util.StringTokenizer;
+        import org.apache.hadoop.conf.Configuration;
+        import org.apache.hadoop.fs.Path;
+        import org.apache.hadoop.io.IntWritable;
+        import org.apache.hadoop.io.Text;
+        import org.apache.hadoop.mapreduce.Job;
+        import org.apache.hadoop.mapreduce.Mapper;
+        import org.apache.hadoop.mapreduce.Reducer;
+        import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+        import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+        public class WordCount {
+          public static class TokenizerMapper
+               extends Mapper<Object, Text, Text, IntWritable>{
+        
+            private final static IntWritable one = new IntWritable(1);
+            private Text word = new Text();
+        
+            public void map(Object key, Text value, Context context
+                            ) throws IOException, InterruptedException {
+              StringTokenizer itr = new StringTokenizer(value.toString());
+              while (itr.hasMoreTokens()) {
+                word.set(itr.nextToken());
+                context.write(word, one);      }    }  }
+          public static class IntSumReducer
+               extends Reducer<Text,IntWritable,Text,IntWritable> {
+            private IntWritable result = new IntWritable();
+            public void reduce(Text key, Iterable<IntWritable> values,
+                               Context context
+                               ) throws IOException, InterruptedException {
+              int sum = 0;
+              for (IntWritable val : values) {
+                sum += val.get();
+              }
+              result.set(sum);
+              context.write(key, result);
+            }
+          }
+          public static void main(String[] args) throws Exception {
+            Configuration conf = new Configuration();
+            Job job = Job.getInstance(conf, "word count");
+            job.setJarByClass(WordCount.class);
+          job.setMapperClass(TokenizerMapper.class);
+           job.setCombinerClass(IntSumReducer.class);
+            job.setReducerClass(IntSumReducer.class);
+            job.setOutputKeyClass(Text.class);
+            job.setOutputValueClass(IntWritable.class);
+            FileInputFormat.addInputPath(job, new Path(args[0]));
+            FileOutputFormat.setOutputPath(job, new Path(args[1]));
+            System.exit(job.waitForCompletion(true) ? 0 : 1);
+          }
+        }
+        hdfs dfs -mkdir programs
+        hdfs dfs -put input.txt programs/
+        hadoop jar wordcount.Jar wordcount programs/input.txt programs/output
+        hdfs dfs -cat programs -word/output/*
+</pre>
+</div>
+<div hidden id="sec">
+    <pre>
+        1
+        hadoop dfs –mkdir  /directory_name
+        hadoop dfs -ls /
+        hadoop dfs –put /localfile /hdfsdirectory
+        hadoop dfs -get /HDFSFile /localpath
+        hadoop dfs -cat /folder/filename
+        hadoop dfs –rm /path
+        hadoop dfs -rmdir -r /Foldername
+        2
+        benchmarktest
+        hadoop jar had.jar mrbench numRuns 50
+        stress test
+        hadoop jar had.jar nnbench -operation create_write -maps 12 -reduces 6 -blockSize 1 -bytestoWrite 0 -numberofFiles 100    
+</pre>
+</div>
   </body>
 
 </html>
