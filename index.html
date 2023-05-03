@@ -874,6 +874,8 @@
   
 </div>
 <div id="hack" hidden><pre>
+
+    
     2) i)PROGRAM:
     hadoop dfs –mkdir  /directory_name
     hadoop dfs -ls /
@@ -882,6 +884,11 @@
     hadoop dfs -cat /folder/filename
     hadoop dfs –rm /path
     hadoop dfs -rmdir -r /Foldername
+    
+    2)ii) benchmark
+    hadoop jar had.jar mrbench -numRuns 50
+    sress test
+    hadoop jar had.jar nnbench -operation create_write -maps 12 -reduces 6 -blockSize 1 -bytestoWrite 0 -numberofFiles 100
     
     3) A) PROGRAM:
     import java.io.IOException;
@@ -1000,9 +1007,7 @@
     hdfs dfs -cat programs/output/*
     
     
-    
-    4) PROGRAM:
-    
+ 4) PROGRAM: 
     import java.io.IOException;
     import java.util.HashSet;
     import java.util.Set;
@@ -1094,27 +1099,18 @@
       org.apache.hadoop.mapreduce.Counters counters = job.getCounters();
       System.out.printf("Number of stop words are %d ",;counters.findCounter(COUNTERS.STOPWORDS).getValue());}}
     
-    stop words:
+    4)Stop words:
     
     import sys
     import re
-    
-    # Define the list of stop words
     stop_words = set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on', 'that', 'the', 'to', 'was', 'were', 'will', 'with'])
-    
-    # Define a regular expression to match words
     word_regex = re.compile(r"\b\w+\b")
-    
-    # Read each line from stdin
     for line in sys.stdin:
-        # Split the line into words
         words = word_regex.findall(line)
-        # Remove stop words from the words list
         words = [word.lower() for word in words if word.lower() not in stop_words]
-        # Output each word
         for word in words:
             print("%s\t%s" % (word, 1))
-    
+            
     Command:
     hadoop jar hadoop -streaming -3.3.0.jar -file stop.py -input programs-word/input.txt -output programs-word/output mapper
     "python stop.py" 
@@ -1129,6 +1125,95 @@
     pr=nx.pagerank(G,0.4)
     print(pr)
     
+    
+6)Ontology
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.cluster import KMeans
+ontA_data = pd.read_csv('ontA_instances.csv')
+ontB_data = pd.read_csv('ontB_instances.csv')
+for data in [ontA_data, ontB_data]:
+data['title'] = data['title'].apply(lambda x: x.lower())
+sim_scores = [
+{
+'ontA_instance': row1['title'],
+'ontB_instance': row2['title'],
+'title_sim': cosine_similarity(TfidfVectorizer().fit_transform([row1['title'], row2['title']]))[0][1],
+'genre_sim': len(set(row1['genre'].split(',')).intersection(set(row2['genre'].split(',')))) /
+len(set(row1['genre'].split(',')).union(set(row2['genre'].split(',')))),
+'director_sim': 1 / (1 + abs(int(row1['director_birth_year']) - int(row2['director_birth_year']))),
+}
+for idx1, row1 in ontA_data.iterrows()
+for idx2, row2 in ontB_data.iterrows()
+]
+sim_matrix = pd.DataFrame(sim_scores).pivot(index='ontA_instance', columns='ontB_instance',
+values='title_sim').fillna(0) + pd.DataFrame(sim_scores).pivot(index='ontA_instance',
+columns='ontB_instance', values='genre_sim').fillna(0) +
+pd.DataFrame(sim_scores).pivot(index='ontA_instance', columns='ontB_instance',
+values='director_sim').fillna(0)
+match_results = pd.DataFrame({'ontA_instance': sim_matrix.index, 'cluster':
+KMeans(n_clusters=5, random_state=0).fit_predict(sim_matrix)})
+match_results['ontB_instance'] = [
+', '.join(list(sim_matrix.columns[np.where(match_results['cluster'] == cluster)[0]]))
+for cluster in range(5)
+]
+print(match_results)
+
+Dataset:
+ontA_instance.csv
+title,genre,director_birth_year
+The Godfather,Crime,Drama,1920
+The Shawshank Redemption,Drama,1947
+The Dark Knight,Action,Crime,Drama,1970
+Pulp Fiction,Crime,Drama,1963
+The Lord of the Rings: The Return of the King,Adventure,Drama,Fantasy,1958
+
+ontB_instance.csv
+title,genre,director_birth_year
+The Godfather: Part II,Crime,Drama,1920
+The Shawshank Redemption,Drama,1947
+The Godfather,Crime,Drama,1972
+The Lord of the Rings: The Fellowship of the Ring,Adventure,Drama,Fantasy,1958
+Forrest Gump,Drama,Romance,Comedy,1951
+
+7. Advertising
+import pandas as pd
+import numpy as np
+from sklearn.cluster import KMeans
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+customer_data = pd.read_csv('customer_data.csv')
+target_age_group = KMeans(n_clusters=3, random_state=0).fit_predict(customer_data[['age']])
+target_gender = KMeans(n_clusters=2, random_state=0).fit_predict(customer_data[['gender']])
+target_income_group = KMeans(n_clusters=4,
+random_state=0).fit_predict(customer_data[['income']])
+product_data = pd.read_csv('product_data.csv')
+vectorizer = TfidfVectorizer()
+product_vector = vectorizer.fit_transform(product_data['description'])
+customer_vector = vectorizer.transform(customer_data['interests'])
+similarity_matrix = cosine_similarity(customer_vector, product_vector)
+product_data['similarity_score'] = np.max(similarity_matrix, axis=0)
+product_data = product_data.sort_values(by=['similarity_score'], ascending=False).head(5)
+website_data = pd.read_csv('website_data.csv')
+visitor_clusters = KMeans(n_clusters=5, random_state=0).fit_predict(website_data[['time_spent',
+'pages_visited']])
+best_cluster = np.argmax([np.mean(website_data[visitor_clusters == i]['purchase']) for i in
+range(5)])
+best_pages_str = ', '.join(website_data[visitor_clusters == best_cluster]['pages_visited'].tolist())
+social_media_data = pd.read_csv('social_media_data.csv')
+email_data = pd.read_csv('email_data.csv')
+social_media_clusters = KMeans(n_clusters=3,
+random_state=0).fit_predict(social_media_data[['likes', 'shares']])
+email_clusters = KMeans(n_clusters=2, random_state=0).fit_predict(email_data[['open_rate',
+'click_rate']])
+print('Marketing Recommendations:')
+print('Target Age Group:', target_age_group)
+print('Target Gender:', target_gender)
+print('Target Income Group:', target_income_group)
+print('Product Recommendations:')
+print(product_data[['name', 'description']])
+
     
     
     8)A) MISSING VALUE RATIO:
@@ -1272,15 +1357,7 @@
            sub_graph.add_edge(j[0],j[1])
         draw(sub_graph)
     
-    2)  bench mark
-    hadoop jar had.jar mrbench -numRuns 50
-    
-    2nd method
-    hadoop jar ha(tab space) mrbench numRuns 50
-    
-    
-    stress test
-    hadoop jar had.jar nnbench -operation create_write -maps 12 -reduces 6 -blockSize 1 -bytestoWrite 0 -numberofFiles 100
+
     </pre></div>
     
   </body>
