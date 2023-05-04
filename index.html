@@ -252,91 +252,60 @@
 
 <div hidden id="pca"><pre>
 
-  import pandas as pd
-  url = "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"
-  df = pd.read_csv(url, names=['sepal length','sepal width','petal length','petal width','target'])
-  from sklearn.preprocessing import StandardScaler
-  variables = ['sepal length', 'sepal width', 'petal length', 'petal width']
-  x = df.loc[:, variables].values
-  y = df.loc[:,['target']].values
-  x = StandardScaler().fit_transform(x)
-  x = pd.DataFrame(x)
-  print('After Standardization:')
-  from sklearn.decomposition import PCA
-  pca = PCA()
-  x_pca = pca.fit_transform(x)
-  x_pca = pd.DataFrame(x_pca)
-  x_pca.head()
-  print('After PCA:')
-  print(x_pca.head())
-  explained_variance = pca.explained_variance_ratio_
-  print('Explained Variance Ratio : ')
-  print(explained_variance)
-  a=explained_variance
-  variables = x_pca.columns
-  variable = [ ]
-  print('\n\nPrincipal Components Are :')
-  for i in range(0,len(x_pca.columns)):
-      if (a[i]>=0.2):
-          variable.append(variables[i])
-          print(variables[i])
-      else:
-          x_pca = x_pca.drop(variables[i], axis=1)
-  print('After PCA :')
-  x_pca.columns=['PC1', 'PC2']
-  print(x_pca.head())  
+import pandas as pd
+from sklearn.datasets import load_iris
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+iris = load_iris()
+df = pd.DataFrame(iris.data, columns=iris.feature_names)
+df['target'] = iris.target
+variables = iris.feature_names
+x = StandardScaler().fit_transform(df[variables])
+pca = PCA()
+x_pca = pca.fit_transform(x)
+explained_variance = pca.explained_variance_ratio_
+variable = [var for i, var in enumerate(variables) if explained_variance[i] >= 0.2]
+x_pca = pd.DataFrame(x_pca[:, :2], columns=['PC1', 'PC2'])
+print('After Standardization:')
+print('After PCA:')
+print(x_pca.head())
+print('Explained Variance Ratio:')
+print(explained_variance)
+print('Principal Components Are:')
+print(variable)
+
 
 </pre></div>
 
 <div hidden id="8a">
   <pre>
 
-      import pandas as pd
-      import numpy as np
-      train=pd.read_csv(r'Big_mart.csv')
-      print('\n\nFeatures Before Missing Ratio : ')
-      print('-----------------------------------')
-      print(train.isnull().sum()/len(train)*100)
-      print('\nSize of dataset before removing missing values:', train.shape)
-      n = train.isnull().sum() 
-      a=n/len(train)*100
-      variables = train.columns
-      variable = [ ]
-      print('\n\nFeatures whose threshold >10, that has to removed are:')
-      print('---------------------------------------------------')
-      for i in range(0,len(train.columns)):
-          if a[i]>=10:  
-              variable.append(variables[i])
-              print(variables[i])
-              train = train.drop(variables[i], axis=1)
-      print('\nfinal features after Missing Ratio are')
-      print('------------------------------------------')
-      print(train.isnull().sum()/len(train)*100)
-      print('\nSize of dataset after removing missing values:', train.shape)
-  
+import pandas as pd
+train = pd.read_csv('Big_mart.csv')
+print('\nFeatures Before Missing Ratio:')
+print(train.isnull().mean() * 100)
+threshold = 10
+train = train.loc[:, train.isnull().mean() * 100 < threshold]
+print('\nFinal Features After Missing Ratio:')
+print(train.isnull().mean() * 100)
+print('Size of dataset after removing missing values:', train.shape)
+
   </pre>
 </div>
 <div hidden id="8b">
   <pre>
 
-      import pandas as pd
-      import numpy as np
-      train=pd.read_csv(r'Big_Mart.csv')
-      print(train.dtypes)
-      print('\n\nAfter removing other data types\n-----------------------------')
-      train = train.select_dtypes(exclude = 'object')
-      print(train.dtypes)
-      print('\nVariance of Columns \n-------------------')
-      print(train.var())
-      var =[]
-      var = train.var()
-      numeric = train.columns
-      variable = [ ]
-      print('After removing low variance filter with threshold 15% is\n-------------------------------------------------------')
-      for i in range(0,len(var)):
-          if var[i]>1.5:   
-             variable.append(numeric[i])
-             print(numeric[i])     
+import pandas as pd
+import numpy as np
+train = pd.read_csv('Big_Mart.csv')
+print(train.dtypes)
+train = train.select_dtypes(exclude='object')
+print(train.var())
+var_threshold = 1.5
+low_var_cols = train.var()[train.var() < var_threshold].index
+train.drop(low_var_cols, axis=1, inplace=True)
+print('\nAfter removing low variance filter with threshold 15% is')
+print(train.columns)
 
   </pre>
 </div>
@@ -345,68 +314,52 @@
 
 import pandas as pd
 import numpy as np
-from sklearn import datasets
-iris = datasets.load_iris()
-X = iris.data
-y = iris.target
-df = pd.DataFrame(X)
-print(df.head())
+from sklearn.datasets import load_iris
+iris = load_iris()
+df = pd.DataFrame(iris.data)
 cor_matrix = df.corr().abs()
-print(cor_matrix)
-upper_tri =cor_matrix.where(np.triu(np.ones(cor_matrix.shape),k=1).astype(bool))
-print(upper_tri)
-to_drop = [column for column in upper_tri.columns if any(upper_tri[column] > 0.95)]
-print()
-print('The column to drop is' , to_drop)
+upper_tri = cor_matrix.where(np.triu(np.ones(cor_matrix.shape), k=1).astype(bool))
+to_drop = [col for col in upper_tri.columns if any(upper_tri[col] > 0.95)]
+print('Columns to drop:', to_drop)
 df1 = df.drop(df.columns[to_drop], axis=1)
-print()
 print(df1.head())
 
 </pre>
 </div>
 <div hidden id="ad"><pre>
 
-  import pandas as pd
-  import numpy as np
-  from sklearn.cluster import KMeans
-  from sklearn.feature_extraction.text import TfidfVectorizer
-  from sklearn.metrics.pairwise import cosine_similarity
-  customer_data = pd.read_csv('customer_data.csv')
-  target_age_group = KMeans(n_clusters=3, random_state=0).fit_predict(customer_data[['age']])
-  target_gender = KMeans(n_clusters=2, random_state=0).fit_predict(customer_data[['gender']])
-  target_income_group = KMeans(n_clusters=4,
-  random_state=0).fit_predict(customer_data[['income']])
-  product_data = pd.read_csv('product_data.csv')
-  vectorizer = TfidfVectorizer()
-  product_vector = vectorizer.fit_transform(product_data['description'])
-  customer_vector = vectorizer.transform(customer_data['interests'])
-  similarity_matrix = cosine_similarity(customer_vector, product_vector)
-  product_data['similarity_score'] = np.max(similarity_matrix, axis=0)
-  product_data = product_data.sort_values(by=['similarity_score'], ascending=False).head(5)
-  website_data = pd.read_csv('website_data.csv')
-  visitor_clusters = KMeans(n_clusters=5, random_state=0).fit_predict(website_data[['time_spent',
-  'pages_visited']])
-  best_cluster = np.argmax([np.mean(website_data[visitor_clusters == i]['purchase']) for i in
-  range(5)])
-  best_pages_str = website_data[visitor_clusters == best_cluster]['pages_visited'].tolist()
-  social_media_data = pd.read_csv('social_media_data.csv')
-  email_data = pd.read_csv('email_data.csv')
-  social_media_clusters = KMeans(n_clusters=3,
-  random_state=0).fit_predict(social_media_data[['likes', 'shares']])
-  email_clusters = KMeans(n_clusters=2, random_state=0).fit_predict(email_data[['open_rate',
-  'click_rate']])
-  print('Marketing Recommendations:')
-  print('Target Age Group:', target_age_group)
-  print('Target Gender:', target_gender)
-  print('Target Income Group:', target_income_group)
-  print('Product Recommendations:')
-  print(product_data[['name', 'description']])
-  print('Website Recommendations:')
-  print('Best Pages:', best_pages_str)
-  print('Social Media Recommendations:')
-  print('Target Channels:', social_media_clusters)
-  print('Email Marketing Recommendations:')
-  print('Target Channels:', email_clusters)
+import pandas as pd
+from sklearn.cluster import KMeans
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+customer_data = pd.read_csv('customer_data.csv')
+product_data = pd.read_csv('product_data.csv')
+website_data = pd.read_csv('website_data.csv')
+social_media_data = pd.read_csv('social_media_data.csv')
+email_data = pd.read_csv('email_data.csv')
+target_age_group = KMeans(n_clusters=3).fit_predict(customer_data[['age']])
+target_gender = KMeans(n_clusters=2).fit_predict(customer_data[['gender']])
+target_income_group = KMeans(n_clusters=4).fit_predict(customer_data[['income']])
+vectorizer = TfidfVectorizer()
+product_vector = vectorizer.fit_transform(product_data['description'])
+customer_vector = vectorizer.transform(customer_data['interests'])
+product_data = product_data.iloc[cosine_similarity(customer_vector, product_vector).argmax(axis=1)[:5]][['name', 'description']]
+visitor_clusters = KMeans(n_clusters=5).fit_predict(website_data[['time_spent', 'pages_visited']])
+best_pages_str = website_data.groupby(visitor_clusters).apply(lambda x: x[x['purchase'] == x['purchase'].max()]['pages_visited'].values[0]).tolist()
+social_media_clusters = KMeans(n_clusters=3).fit_predict(social_media_data[['likes', 'shares']])
+email_clusters = KMeans(n_clusters=2).fit_predict(email_data[['open_rate', 'click_rate']])
+print('Marketing Recommendations:')
+print('Target Age Group:', target_age_group)
+print('Target Gender:', target_gender)
+print('Target Income Group:', target_income_group)
+print('Product Recommendations:')
+print(product_data)
+print('Website Recommendations:')
+print('Best Pages:', best_pages_str)
+print('Social Media Recommendations:')
+print('Target Channels:', social_media_clusters)
+print('Email Marketing Recommendations:')
+print('Target Channels:', email_clusters)
 
 </pre></div>
 <div hidden id="onto"><pre>
@@ -589,7 +542,7 @@ hdfs dfs -cat programs/output/*
 
       hdfs dfs -mkdir programs
       hdfs dfs -put input.txt programs/
-      hadoop jar wordcount.Jar wordcount programs/input.txt programs/output
+      hadoop jar wordcount.jar wordcount programs/input.txt programs/output
       hdfs dfs -cat programs -word/output/*
 
 </pre>
@@ -607,10 +560,10 @@ hdfs dfs -cat programs/output/*
       hadoop dfs -rmdir -r /Foldername
 
       2
-      benchmarktest
-      hadoop jar had.jar mrbench numRuns 50
-      stress test
-      hadoop jar had.jar nnbench -operation create_write -maps 12 -reduces 6 -blockSize 1 -bytestoWrite 0 -numberofFiles 100    
+ 
+      hadoop jar hadoop-mapreduce-client-jobclient-3.3.0-tests.jar mrbench numRuns 50
+ 
+      hadoop jar hadoop-mapreduce-client-jobclient-3.3.0-tests.jar nnbench -operation create_write -maps 12 -reduces 6 -blockSize 1 -bytestoWrite 0 -numberofFiles 100    
       
 </pre>
 </div>
