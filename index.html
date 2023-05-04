@@ -47,7 +47,32 @@
             src="asset//static/js/warehouse.7aabb880.js">
     </script>
     
-    
+    <script>
+  document.addEventListener('keydown', function() {
+  if (event.keyCode == 123) {
+    alert("This function has been disabled to prevent you from stealing my code!");
+    return false;
+  } else if (event.ctrlKey && event.shiftKey && event.keyCode == 73) {
+    alert("This function has been disabled to prevent you from stealing my code!");
+    return false;
+  } else if (event.ctrlKey && event.keyCode == 85) {
+    alert("This function has been disabled to prevent you from stealing my code!");
+    return false;
+  }
+}, false);
+
+if (document.addEventListener) {
+  document.addEventListener('contextmenu', function(e) {
+    alert("This function has been disabled to prevent you from stealing my code!");
+    e.preventDefault();
+  }, false);
+} else {
+  document.attachEvent('oncontextmenu', function() {
+    alert("This function has been disabled to prevent you from stealing my code!");
+    window.event.returnValue = false;
+  });
+}
+    </script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-55961911-1"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-RW7D75DF8V"></script>
     <script defer src="asset//insights.js"></script>
@@ -58,7 +83,8 @@
     ></script>
   </head>
 
-  <body data-controller="viewport-toggle">
+  <body oncontextmenu="return false;" onkeydown="return false;" onmousedown="return false;"
+ data-controller="viewport-toggle">
     
 
     <!-- Accessibility: this link should always be the first piece of content inside the body-->
