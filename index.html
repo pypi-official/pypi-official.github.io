@@ -415,8 +415,9 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.cluster import KMeans
-ontA_data = pd.read_csv('ontA_instances.csv')
-ontB_data = pd.read_csv('ontB_instances.csv')
+import numpy as np
+ontA_data = pd.read_csv('ontA_instance.csv')
+ontB_data = pd.read_csv('ontB_instance.csv')
 for data in [ontA_data, ontB_data]:
   data['title'] = data['title'].apply(lambda x: x.lower())
 sim_scores = [
