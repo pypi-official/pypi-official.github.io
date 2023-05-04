@@ -393,30 +393,22 @@ print('Target Channels:', email_clusters)
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.cluster import KMeans
-import numpy as np
-ontA_data = pd.read_csv('ontA_instance.csv')
-ontB_data = pd.read_csv('ontB_instance.csv')
-for data in [ontA_data, ontB_data]:
-  data['title'] = data['title'].apply(lambda x: x.lower())
-sim_scores = [
-  {
-      'ontA_instance': row1['title'], 
-      'ontB_instance': row2['title'],
-      'title_sim': cosine_similarity(TfidfVectorizer().fit_transform([row1['title'], row2['title']]))[0][1],
-      'genre_sim': len(set(row1['genre'].split(',')).intersection(set(row2['genre'].split(',')))) / len(set(row1['genre'].split(',')).union(set(row2['genre'].split(',')))),
-      'director_sim': 1 / (1 + abs(int(row1['director_birth_year']) - int(row2['director_birth_year']))),
-  }
-  for idx1, row1 in ontA_data.iterrows() 
-  for idx2, row2 in ontB_data.iterrows()
-]
-sim_matrix = pd.DataFrame(sim_scores).pivot(index='ontA_instance', columns='ontB_instance', values='title_sim').fillna(0) + pd.DataFrame(sim_scores).pivot(index='ontA_instance', columns='ontB_instance', values='genre_sim').fillna(0) + pd.DataFrame(sim_scores).pivot(index='ontA_instance', columns='ontB_instance', values='director_sim').fillna(0)
-match_results = pd.DataFrame({'ontA_instance': sim_matrix.index, 'cluster': KMeans(n_clusters=5, random_state=0).fit_predict(sim_matrix)})
-match_results['ontB_instance'] = [
-  ', '.join(list(sim_matrix.columns[np.where(match_results['cluster'] == cluster)[0]])) 
-  for cluster in range(5)
-]
-print(match_results)
+ontology_1 = pd.read_csv(r"ontA_instance.csv")
+ontology_2 = pd.read_csv(r"ontB_instance.csv")
+ontologies = pd.concat([ontology_1, ontology_2])
+ontology_terms_tfidf = TfidfVectorizer().fit_transform(ontologies["genre"])
+similarity_matrix = cosine_similarity(ontology_terms_tfidf)
+print(similarity_matrix)
+for i, term_1 in enumerate(ontology_1["genre"]):
+    for j, term_2 in enumerate(ontology_2["genre"]):
+        print("\nEntry from ontology_1:\n")
+        print(ontology_1.loc[i])
+        print("\nEntry from ontology_2:\n")
+        print(ontology_2.loc[j])  
+        print("Match result:\n")
+        similarity = similarity_matrix[i, len(ontology_1) + j]
+        if similarity > 0.9:print(f"{term_1} matches {term_2}")
+        else:print("Similarity matrix value is  less than 0.9\n")
 
 </pre></div>
 <div hidden id="stop">
