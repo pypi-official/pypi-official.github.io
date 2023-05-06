@@ -288,6 +288,316 @@ if (document.addEventListener) {
             </ul>
           </nav>
         </div>
+<div hidden id="enque"><pre>
+
+def is_valid(pos, a):
+    for i in range(1, pos):
+        if a[i] == a[pos] or abs(a[i] - a[pos]) == abs(i - pos):
+            return False
+    return True
+
+def print_solution(a):
+    print("\n")
+    for i in range(1, len(a)):
+        for j in range(1, len(a)):
+            print("Q" if a[i] == j else "*", end="\t")
+        print("")
+
+def n_queens(n):
+    cnt = 0
+    a = [0] * (n + 1)
+    k = 1
+    a[k] = 0
+    while k != 0:
+        a[k] += 1
+        while a[k] <= n and not is_valid(k, a):
+            a[k] += 1
+        if a[k] <= n:
+            if k == n:
+                cnt += 1
+                print_solution(a)
+            else:
+                k += 1
+                a[k] = 0
+        else:
+            k -= 1
+    return cnt
+n = 4
+count = n_queens(n)
+print("\n")
+print("Total solutions:", count)
+
+  </pre></div>
+
+  <div hidden id="monk"><pre>
+
+    move(state(middle,onbox,middle,hasnot),
+    grasp,
+    state(middle,onbox,middle,has)).
+ move(state(P,onfloor,P,H),
+    climb,
+    state(P,onbox,P,H)).
+ move(state(P1,onfloor,P1,H),
+    drag(P1,P2),
+    state(P2,onfloor,P2,H)).
+ move(state(P1,onfloor,B,H),
+    walk(P1,P2),
+    state(P2,onfloor,B,H)).
+ canget(state(_,_,_,has)).
+ canget(State1) :-
+    move(State1,_,State2),
+    canget(State2).
+  
+  </pre></div>
+
+  <div hidden id="tsp">
+    <pre>
+
+        from itertools import permutations
+        def travelling_salesman(graph, start):
+            n = len(graph)
+            vertices = set(range(n))
+            vertices.remove(start)
+            min_path = float('inf')
+            for path in permutations(vertices):
+                path = (start,) + path + (start,)
+                path_weight = sum(graph[path[i]][path[i+1]] for i in range(n))
+                min_path = min(min_path, path_weight)
+            return min_path
+        graph = [[0, 10, 15, 20], [10, 0, 35, 25],[15, 35, 0, 30], [20, 25, 30, 0]]
+        start = 0
+        print(travelling_salesman(graph, start))
+        
+        
+    </pre>
+  </div>
+  <div hidden id="fos">
+    <pre>
+
+    class Client:
+        def __init__(self):
+            self.order_list = {}
+            self.amount_payable = 0
+        def bill(self):
+            menu = {"pizza": 20, "burger": 15, "pie": 10}
+            print("---------Bill---------")
+            print("|Food Name \t|Count \t|Price \t|")
+            for food_name, count in self.order_list.items():
+                print(f"|{food_name}\t\t|{count}\t|{menu[food_name]}\t|")
+                print("------------")
+            print(f"Total Amount due: {self.amount_payable}")
+    def order(client):
+        menu = {"pizza": 20, "burger": 15, "pie": 10}
+        food_name = input("Enter the food item you want to order: ")
+        count = int(input("Enter the count: "))
+        if food_name in menu:
+            client.order_list[food_name] = count
+            client.amount_payable += menu[food_name] * count
+        else:
+            print("Please select from the menu.")
+    def handler():
+        client = Client()
+        if input("Do you want to see the menu? Type y for Yes. ").lower() == "y":
+            menu = {"pizza": 20, "burger": 15, "pie": 10}
+            print("Today's menu:")
+            for food_name, price in menu.items():
+                print(f"{food_name} = {price}")
+        while input("Type y to order. ").lower() == "y":
+            order(client)
+            while True:
+                reply = input("Type y to order another food OR Type bill to get the bill. ").lower()
+                if reply == "y":
+                    order(client)
+                elif reply == "bill":
+                    client.bill()
+                    return
+    handler()
+    
+    </pre>
+  </div>
+  <div hidden id="tot">
+    <pre>
+
+        def print_board(board):
+        print(" " + board[0] + " | " + board[1] + " | " + board[2] + " ")
+        print("-----------")
+        print(" " + board[3] + " | " + board[4] + " | " + board[5] + " ")
+        print("-----------")
+        print(" " + board[6] + " | " + board[7] + " | " + board[8] + " ")
+    def check_win(board, player):
+        return ((board[0] == player and board[1] == player and board[2] == player) or
+                (board[3] == player and board[4] == player and board[5] == player) or
+                (board[6] == player and board[7] == player and board[8] == player) or
+                (board[0] == player and board[3] == player and board[6] == player) or
+                (board[1] == player and board[4] == player and board[7] == player) or
+                (board[2] == player and board[5] == player and board[8] == player) or
+                (board[0] == player and board[4] == player and board[8] == player) or
+                (board[2] == player and board[4] == player and board[6] == player))
+    def tic_tac_toe():
+        board = [' '] * 9
+        player = 'X'
+        print_board(board)
+        while True:
+            move = input("It's " + player + "'s turn. Enter position (1-9): ")
+            try:
+                move = int(move) - 1
+                if board[move] == ' ':
+                    board[move] = player
+                    print_board(board)
+                    if check_win(board, player):
+                        print("Congratulations, " + player + " won!")
+                        return
+                    player = 'O' if player == 'X' else 'X'
+                else:
+                    print("That position is already taken. Try again!")
+            except ValueError:
+                print("Invalid input. Try again!")
+    tic_tac_toe()
+
+</pre>
+</div>
+<div hidden id="wjp"><pre>
+
+    def pour(jug1, jug2):
+    max1, max2, goal = 4, 3, 2 
+    while True:
+        print("%d\t%d" % (jug1, jug2))
+        if jug2 == goal:
+            break
+        elif jug2 == max2:
+            jug2 = 0
+        elif jug1 == 0:
+            jug1 = max1
+        else:
+            diff = min(jug1, max2-jug2)
+            jug1 -= diff
+            jug2 += diff
+print("Jug1\tJug2")
+pour(0, 0)
+
+</pre></div>
+<div hidden id="bfs"><pre>
+
+    from collections import deque
+    graph = {
+        'A': ['B', 'C'],
+        'B': ['D', 'E'],
+        'C': ['F'],
+        'D': [],
+        'E': ['F'],
+        'F': []
+    }
+    def bfs(graph, start):
+        queue = deque([start])
+        visited = set(start)
+        while queue:
+            node = queue.popleft()
+            print(node, end=' ')
+            for neighbor in graph[node]:
+                if neighbor not in visited:
+                    queue.append(neighbor)
+                    visited.add(neighbor)
+    bfs(graph, 'B')
+
+</pre></div>
+
+<div hidden id="fam">
+    <pre>
+        female(pam).
+        female(liz).
+        female(pat).
+        female(ann).
+        male(jim).
+        male(bob).
+        male(tom).
+        male(peter).
+        parent(pam,bob).
+        parent(tom,bob).
+        parent(tom,liz).
+        parent(bob,ann).
+        parent(bob,pat).
+        parent(pat,jim).
+        parent(bob,peter).
+        parent(peter,jim).
+        mother(X,Y):- parent(X,Y),female(X).
+        father(X,Y):- parent(X,Y),male(X).
+        haschild(X):- parent(X,_).
+        sister(X,Y):- parent(Z,X),parent(Z,Y),female(X),X\==Y.
+        brother(X,Y):-parent(Z,X),parent(Z,Y),male(X),X\==Y.
+</pre>
+</div>
+<div hidden id="stem">
+    <pre>
+
+from nltk.stem import PorterStemmer
+from nltk.tokenize import word_tokenize
+ps = PorterStemmer()
+words = ["program", "programs", "programmer", "programming", "programmers"]
+for w in words:
+	print(w, " : ", ps.stem(w))
+
+</pre>
+</div>
+
+<div hidden id="tenab">
+    <pre>
+
+punctuation = '''!@#$%^&*()_-[]{}\?/.,<>:;'"`~'''
+str = input("Enter the string: ")
+no_punc = ""
+for char in str:
+	if char not in punctuation:
+		no_punc = no_punc+char
+print(no_punc)
+ 
+
+str = input("Enter a String : ")
+words = str.split()
+words.sort()
+for word in words:
+	print(word)
+
+</pre>
+</div>
+
+
+<div hidden id="set">
+    <pre>
+
+        A = {1,2,3,4,5,6};
+        B = {4,5,6,7,8,9};
+        print("Union :", A | B)
+        print("Intersection :", A & B)
+        print("Difference :", A - B)
+        print("Symmetric difference :", A ^ B)
+        c=set("apple")
+        print('a' in c)
+        print('w' not in c)
+        for letter in c:
+            print(letter)
+
+</pre>
+</div>
+
+<div hidden id="stac">
+    <pre>
+
+stack =[]
+stack.append('a')
+stack.append('b')
+stack.append('c')
+print(" Initial Stack")
+print(stack)
+print("\n Elements popped from stack : ")
+print(stack.pop())
+print(stack.pop())
+print(stack.pop())
+print("\n Stack after elements are popped")
+print(stack)
+
+</pre>
+</div>
+ 
 
         <div class="footer__menu">
           <h2>Using PyPI</h2>
